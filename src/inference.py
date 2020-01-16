@@ -77,8 +77,9 @@ class DiscreteDistribution(dict):
         "*** YOUR CODE HERE ***"
         total_value = self.total()
 
-        for i in self:
-            self[i] /= total_value
+        if total_value != 0:
+            for i in self:
+                self[i] /= total_value
 
     def sample(self):
         """
@@ -298,7 +299,13 @@ class ExactInference(InferenceModule):
         position is known.
         """
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+        noisy_distance = observation
+        pacman_position = gameState.getPacmanPosition()
+        jail_position = self.getJailPosition()
+
+        for possible_ghost_position in self.beliefs:
+            p_noisy_distance_given_true_distance = self.getObservationProb(noisy_distance, pacman_position, possible_ghost_position, jail_position)
+            self.beliefs[possible_ghost_position] *= p_noisy_distance_given_true_distance
 
         self.beliefs.normalize()
 
