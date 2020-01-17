@@ -144,3 +144,32 @@ class GreedyBustersAgent(BustersAgent):
             [beliefs for i, beliefs in enumerate(self.ghostBeliefs)
              if livingGhosts[i+1]]
         "*** YOUR CODE HERE ***"
+        def apply_action(position, action):
+            x, y = position
+
+            delta_x = delta_y = 0
+
+            if action == Directions.NORTH:
+                delta_y = 1
+            elif action == Directions.SOUTH:
+                delta_y = -1
+            elif action == Directions.WEST:
+                delta_x = -1
+            elif action == Directions.EAST:
+                delta_x = 1
+
+            return x + delta_x, y + delta_y
+
+        # First computes the most likely position of each ghost that has not yet been captured
+        possible_ghosts_positions = list(map(lambda x: x.argMax(), livingGhostPositionDistributions))
+        counter = util.Counter()
+        for pos in possible_ghosts_positions:
+            counter[pos] = -1 * self.distancer.getDistance(pos, pacmanPosition)
+        closest_ghost_position = counter.argMax()
+
+        # then chooses an action that brings Pacman closest to the closest ghost (according to mazeDistance!).
+        counter.clear()
+        for legal_action in legal:
+            counter[legal_action] = -1 * self.distancer.getDistance(apply_action(pacmanPosition, legal_action), closest_ghost_position)
+
+        return counter.argMax()
