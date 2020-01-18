@@ -406,7 +406,12 @@ class ParticleFilter(InferenceModule):
         gameState.
         """
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+        new_position_distribution_dictionary = {}
+        for position in self.allPositions:
+            new_position_distribution_dictionary[position] = self.getPositionDistribution(gameState, position)
+
+        for i, old_particle in enumerate(self.particles):
+            self.particles[i] = new_position_distribution_dictionary[old_particle].sample()
 
     def getBeliefDistribution(self):
         """
