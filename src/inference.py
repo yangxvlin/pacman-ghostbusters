@@ -16,6 +16,7 @@ import itertools
 import random
 import busters
 import game
+import util
 
 from util import manhattanDistance, raiseNotDefined
 
@@ -105,7 +106,7 @@ class DiscreteDistribution(dict):
         "*** YOUR CODE HERE ***"
         self.normalize()
         keys, values = zip(*self.items())
-        return random.choices(population=keys, weights=values)
+        return util.sample(values, keys)
 
 
 class InferenceModule:
@@ -380,7 +381,24 @@ class ParticleFilter(InferenceModule):
         the DiscreteDistribution may be useful.
         """
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+        noisy_distance = observation
+        pacman_position = gameState.getPacmanPosition()
+        jail_position = self.getJailPosition()
+
+        belief = self.getBeliefDistribution()
+        for possible_ghost_position in self.allPositions:
+            p_noisy_distance_given_true_distance = self.getObservationProb(noisy_distance, pacman_position, possible_ghost_position, jail_position)
+            belief[possible_ghost_position] *= p_noisy_distance_given_true_distance
+        belief.normalize()
+        belief_total = belief.total()
+
+        if belief_total == 0:
+            self.initializeUniformly(gameState)
+        else:
+            self.particles.clear()
+            for _ in range(0, self.numParticles):
+                sample = belief.sample()
+                self.particles.append(sample)
 
     def elapseTime(self, gameState):
         """
