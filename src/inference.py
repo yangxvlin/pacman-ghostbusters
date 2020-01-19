@@ -494,7 +494,47 @@ class JointParticleFilter(ParticleFilter):
         the DiscreteDistribution may be useful.
         """
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+        def get_ghost_belief_distribution(ghost_index, particles):
+            """
+            Return the agent's current belief state, a distribution over ghost_i
+            locations conditioned on all evidence and time passage. This method
+            essentially converts a list of particles into a belief distribution.
+
+            This function should return a normalized distribution.
+            """
+            belief = DiscreteDistribution()
+
+            for particle in particles:
+                belief[particle[ghost_index]] += 1
+
+            belief.normalize()
+            return belief
+
+        noisy_distances = observation
+        pacman_position = gameState.getPacmanPosition()
+        new_particles = [[] for _ in range(0, self.numParticles)]
+
+        for i in range(self.numGhosts):
+            belief = get_ghost_belief_distribution(i, self.particles)
+            # print(i, belief)
+            jail_position = self.getJailPosition(i)
+            noisy_distance = noisy_distances[i]
+
+            for possible_ghost_position in self.legalPositions:
+                p_noisy_distance_given_true_distance = self.getObservationProb(noisy_distance, pacman_position, possible_ghost_position, jail_position)
+                belief[possible_ghost_position] *= p_noisy_distance_given_true_distance
+            belief.normalize()
+            belief_total = belief.total()
+
+            if belief_total == 0:
+                self.initializeUniformly(gameState)
+                return
+            else:
+                for m in range(0, self.numParticles):
+                    sample = belief.sample()
+                    new_particles[m].append(sample)
+
+        self.particles = list(map(lambda x: tuple(x), new_particles))
 
     def elapseTime(self, gameState):
         """
